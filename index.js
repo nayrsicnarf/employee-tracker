@@ -52,7 +52,7 @@ const mainMenu = [
     {
         type: "list",
         message: "Please choose what you would like to do.",
-        choices: ["View All Departments", "View All Employees", "View All Employees By Department", "View Total Utilized Budget By Department", "View All Employees By Manager", "View All Roles", "Add Department", "Add Employee", "Add Role", "Update Employee Role", "Update Employee Manager", "Delete Department", "Delete Role", "Delete Employee", "Quit"],
+        choices: ["View All Departments", "View All Employees", "View All Employees By Department", "View Total Utilized Budget By Department", "View All Employees By Manager", "View All Roles", "Add Department", "Delete Department", "Add Role", "Delete Role", "Add Employee", "Delete Employee", "Update Employee Role", "Update Employee Manager", "Quit"],
         name: "mainMenuRes"
     },
 ];
@@ -118,6 +118,9 @@ const employeeQuestions = [
         choices: roleChoice,
         name: "employeeRole"
     },
+];
+
+const employeeDeleteQuestion = [
     {
         type: "list",
         message: "Which employee do you want to delete?",
@@ -157,6 +160,15 @@ const roleQuestions = [
         choices: employeeChoice,
         name: "roleNew"
     },
+    {
+        type: "list",
+        message: "Which role do you want to delete?",
+        choices: roleChoice,
+        name: "roleDelete"
+    },
+];
+
+const roleDeleteQuestion = [
     {
         type: "list",
         message: "Which role do you want to delete?",
@@ -213,26 +225,26 @@ const init = () => {
             case "Add Department":
                 departmentAdd();
                 break;
-            case "Add Employee":
-                employeeAdd();
+            case "Delete Department":
+                departmentDelete();
                 break;
             case "Add Role":
                 roleAdd();
+                break;
+            case "Delete Role":
+                roleDelete();
+                break;
+            case "Add Employee":
+                employeeAdd();
+                break;
+            case "Delete Employee":
+                employeeDelete();
                 break;
             case "Update Employee Role":
                 employeeRoleUpdate();
                 break;
             case "Update Employee Manager":
                 employeeManagerUpdate();
-                break;
-            case "Delete Department":
-                departmentDelete();
-                break;
-            case "Delete Role":
-                roleDelete();
-                break;
-            case "Delete Employee":
-                employeeDelete();
                 break;
             case "Quit":
                 connection.end();
@@ -246,6 +258,20 @@ const departmentViewAll = () => {
         if (err) throw err;
         if (res.length === 0) {
             console.log("\nNo valid departments\n");
+            init();
+        } else {
+            console.log("\n");
+            console.table(res);
+            init();
+        }
+    });
+};
+
+const rolesViewAll = () => {
+    connection.query("SELECT id, title as role, salary, department_id FROM role", (err, res) => {
+        if (err) throw err;
+        if (res.length === 0) {
+            console.log("\nNo valid roles\n");
             init();
         } else {
             console.log("\n");
@@ -285,7 +311,7 @@ const employeesByDepartmentViewAll = () => {
                         res.unshift({ "department": keepRes, "first_name": "X", "last_name": "X" });
                         console.log("\n");
                         console.table(res);
-                        conLogRN(5);
+                        //conLogRN(5);
                     }
                 });
         }).then(() => {
@@ -301,18 +327,17 @@ const budgetByDepartmentViewTotal = () => {
     } else {
         inquirer.prompt(budegetDepartmentQuestion).then(res => {
             let keepRes = res.budegetDepartment;
-            connection.query(
-                "SELECT sum(salary) as budget_total FROM role INNER JOIN employee ON role_id = role.id INNER JOIN department ON department_id = department.id WHERE department.name = ?", [res.budegetDepartment], (err, res) => {
-                    if (err) throw err;
-                    let budgetTotal = res[0].budget_total;
-                    let newRes = [{
-                        "department": keepRes,
-                        "budget_total": budgetTotal
-                    }];
-                    console.log("\n");
-                    console.table(newRes);
-                    conLogRN(5);
-                });
+            connection.query("SELECT sum(salary) as budget_total FROM role INNER JOIN employee ON role_id = role.id INNER JOIN department ON department_id = department.id WHERE department.name = ?", [res.budegetDepartment], (err, res) => {
+                if (err) throw err;
+                let budgetTotal = res[0].budget_total;
+                let newRes = [{
+                    "department": keepRes,
+                    "budget_total": budgetTotal
+                }];
+                console.log("\n");
+                console.table(newRes);
+                //conLogRN(5);
+            });
         }).then(() => {
             init();
         }).catch((e) => { console.log(e) });
@@ -334,7 +359,7 @@ const employeesByManagerViewAll = () => {
                     console.log("\n");
                     if (res.length === 0) {
                         console.log("No employees who work under this manager.\n");
-                        conLogRN(5);
+                        //conLogRN(5);
                     } else {
                         res.unshift({
                             "manager": "    -->",
@@ -342,27 +367,13 @@ const employeesByManagerViewAll = () => {
                             "last_name": lastName
                         })
                         console.table(res);
-                        conLogRN(res.length);
+                        //conLogRN(res.length);
                     }
                 });
         }).then(() => {
             init();
         }).catch((e) => { console.log(e) });
     }
-};
-
-const rolesViewAll = () => {
-    connection.query("SELECT id, title as role, salary, department_id FROM role", (err, res) => {
-        if (err) throw err;
-        if (res.length === 0) {
-            console.log("\nThere are no roles added yet!\n");
-            init();
-        } else {
-            console.log("\n");
-            console.table(res);
-            init();
-        }
-    });
 };
 
 const departmentAdd = () => {
@@ -373,32 +384,203 @@ const departmentAdd = () => {
             if (err) throw err;
         });
     }).then(() => {
-        checkLength("department");
+        //checkLength("department");
         init();
     }).catch((e) => { console.log(e) });
 };
 
 const departmentDelete = () => {
-    checkLength("department");
+    //checkLength("department");
     if (departmentDelete.length === 0) {
-        console.log("\r\nThere are no departments added yet!\r\n");
+        console.log("\nNo valid departments\n");
         init();
     } else {
-        deptChoices.push("None");
+        departmentChoice.push("None");
         inquirer.prompt(departmentDeleteQuestion).then(res => {
-            if (res.delDeptChoice === "None") {
-                console.log("\r\nNone selected.\r\n");
+            if (res.departmentDelete === "None") {
+                console.log("\nNone selected.\n");
             } else {
                 connection.query(
                     "DELETE FROM department WHERE ?", {
-                        name: res.delDeptChoice,
-                    }, (err, res) => {
-                        if (err) throw err;
-                    });
+                    name: res.departmentDelete,
+                }, (err, res) => {
+                    if (err) throw err;
+                });
             }
-            deptChoices.pop();
-        }).then(() => {checkLength("department");
+            departmentChoice.pop();
+        }).then(() => {
+            //checkLength("department");
             init();
-        }).catch((e) => {console.log(e)});
+        }).catch((e) => { console.log(e) });
+    }
+};
+
+const roleAdd = () => {
+    if (departmentChoice.length === 0) {
+        console.log("\nA valid department is needed prior to adding new role\n");
+        init();
+    } else {
+        inquirer.prompt(roleQuestions).then(res => {
+            connection.query(
+                "INSERT INTO role SET ?", {
+                title: res.roleName,
+                salary: res.roleSalary,
+                department_id: findId(departmentId, res.roleDeptartment)
+            }, (err, res) => {
+                if (err) throw err;
+            }
+            );
+        }).then(() => {
+            //checkLength("role");
+            init();
+        }).catch((e) => { console.log(e) });
+    }
+};
+
+const roleDelete = () => {
+    //checkLength("role");
+    if (roleChoice.length === 0) {
+        console.log("\nNo valid roles\n");
+        init();
+    } else {
+        roleChoice.push("None");
+        inquirer.prompt(roleDeleteQuestion).then(res => {
+            if (res.roleDelete === "None") {
+                console.log("\nNone selected.\n");
+            } else {
+                connection.query("DELETE FROM role WHERE ?", {
+                    title: res.roleDelete,
+                }, (err, res) => {
+                    if (err) throw err;
+                });
+            }
+            roleChoice.pop();
+        }).then(() => {
+            //checkLength("role");
+            init();
+        }).catch((e) => { console.log(e) });
+    }
+};
+
+const employeeAdd = () => {
+    //checkLength("employee");
+    if (departmentChoice.length === 0) {
+        console.log("\nA valid department is needed prior to adding new employee\n");
+        init();
+    } else if (roleChoice.length === 0) {
+        console.log("\nA valid rold is needed prior to adding new employee\n");
+        init();
+    } else {
+        inquirer.prompt(employeeQuestions).then(res => {
+            connection.query("INSERT INTO employee SET ?", {
+                first_name: res.firstName,
+                last_name: res.lastName,
+                role_id: findId(roleId, res.employeeRole),
+                manager_id: findId(managerId, res.employeeManager)
+            }, (err, res) => {
+                if (err) throw err;
+            }
+            );
+        }).then(() => {
+            //checkLength("employee");
+            init();
+        }).catch((e) => { console.log(e) });
+    }
+};
+
+const employeeDelete = () => {
+    //checkLength("employee");
+    if (employeeChoice.length === 1) {
+        console.log("\nNo valid employees\n");
+        init();
+    } else {
+        inquirer.prompt(employeeDeleteQuestion).then(res => {
+            let firstName = res.employeeDelete.split(" ")[0];
+            let lastName = res.employeeDelete.split(" ")[1];
+            if (firstName === "None") {
+                console.log("\nNone selected.\n");
+            } else {
+                connection.query(
+                    "DELETE FROM employee WHERE ? AND ?", [{
+                        first_name: firstName
+                    },
+                    {
+                        last_name: lastName
+                    }], (err, res) => {
+                        if (err) throw err;
+                    }
+                );
+            }
+        }).then(() => {
+            //checkLength("employee");
+            init();
+        }).catch((e) => { console.log(e) });
+    }
+};
+
+const employeeRoleUpdate = () => {
+    //checkLength("employee");
+    if (employeeChoice.length === 1) {
+        console.log("\nNo valid employees\n");
+        init();
+    } else if (roleChoice.length === 0) {
+        console.log("\nNo valid roles\n");
+        init();
+    } else {
+        inquirer.prompt(roleQuestions).then(res => {
+            let firstName = res.roleUpdate.split(" ")[0];
+            let lastName = res.roleUpdate.split(" ")[1];
+            if (firstName === "None") {
+                console.log("\nNone selected.\n");
+            } else {
+                connection.query("UPDATE employee SET ? WHERE ? AND ?", [{
+                    role_id: findId(roleId, res.roleNew)
+                },
+                {
+                    first_name: firstName
+                },
+                {
+                    last_name: lastName
+                }], (err, res) => {
+                    if (err) throw err;
+                }
+                );
+            }
+        }).then(() => {
+            //checkLength("employee");
+            init();
+        }).catch((e) => { console.log(e) });
+    }
+};
+
+const employeeManagerUpdate = () => {
+    //checkLength("employee");
+    if (employeeChoice.length === 1) {
+        console.log("\nNo valid employees");
+        init();
+    } else {
+        inquirer.prompt(managerQuestions).then(res => {
+            let firstName = res.managerUpdate.split(" ")[0];
+            let lastName = res.managerUpdate.split(" ")[1];
+            if (firstName === "None") {
+                console.log("\nNone selected.\n");
+            } else {
+                connection.query("UPDATE employee SET ? WHERE ? AND ?", [{
+                    manager_id: findId(managerId, res.managerNew)
+                },
+                {
+                    first_name: firstName
+                },
+                {
+                    last_name: lastName
+                }], (err, res) => {
+                    if (err) throw err;
+                }
+                );
+            }
+        }).then(() => {
+            checkLength("employee");
+            init();
+        }).catch((e) => { console.log(e) });
     }
 };
