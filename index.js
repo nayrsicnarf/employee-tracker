@@ -1,11 +1,16 @@
 const mysql2 = require("mysql2");
 const inquirer = require("inquirer");
 const consoleTable = require("console.table");
-const logo = require('asciiart-logo');
-const config = require('./package.json');
-console.log(logo(config).render()); 
 
-const db = mysql2.createConnection(
+// const logo = require("asciiart-logo");
+// const config = require("./package.json");
+// config.font = 'Big';
+// config.logoColor = 'bold-green';
+// config.textColor = 'green';
+// config.borderColor = 'grey';
+// console.log(logo(config).render()); 
+
+const connection = mysql2.createConnection(
     {
         host: "localhost",
         port: 3306,
@@ -22,6 +27,12 @@ const departmentId = [];
 const roleId = [];
 const managerId = [];
 
+connection.connect(err => {
+    if (err) throw err;
+    console.log("Connection is a success.");
+    init();
+});
+
 const validateString = async input => {
     if (input.trim() === "" || !isNaN(input.trim())) {
         return "This is not a valid response. Please try again.";
@@ -36,12 +47,6 @@ const validateNumber = async input => {
         return true;
     }
 }
-
-connection.connect(err => {
-    if (err) throw err;
-    console.log("Connection is a success.");
-    init();
-});
 
 const mainMenu = [
     {
@@ -59,22 +64,13 @@ const departmentQuestions = [
         name: "deptartmentName",
         validate: validateString
     },
-    {
-        type: "list",
-        message: "Which department of employees do you want to see?",
-        choices: employeeDepartment,
-        name: "employeeDepartment"
-    },
-    {
-        type: "list",
-        message: "Which department do you want to see the total utilized budget for?",
-        choices: budegetDepartment,
-        name: "budegetDepartment"
-    },
+];
+
+const departmentDeleteQuestion = [
     {
         type: "list",
         message: "Which department do you want to delete?",
-        choices: departmentDelete,
+        choices: departmentChoice,
         name: "departmentDelete"
     },
 ];
@@ -83,8 +79,17 @@ const employeeDepartmentQuestion = [
     {
         type: "list",
         message: "Which department of employees do you want to see?",
-        choices: employeeDepartment,
-        name: "employeeDepartment"
+        choices: departmentChoice,
+        name: "employeeByDepartment"
+    },
+];
+
+const budegetDepartmentQuestion = [
+    {
+        type: "list",
+        message: "Which department do you want to see the total utilized budget for?",
+        choices: departmentChoice,
+        name: "budegetDepartment"
     },
 ];
 
@@ -131,7 +136,7 @@ const roleQuestions = [
     {
         type: "list",
         message: "Which department is this role a part of?",
-        choices: roleDepartment,
+        choices: departmentChoice,
         name: "roleDeptartment"
     },
     {
@@ -143,13 +148,13 @@ const roleQuestions = [
     {
         type: "list",
         message: "Which employee would you like to update the role of?",
-        choices: employeeRole,
+        choices: employeeChoice,
         name: "roleUpdate"
     },
     {
         type: "list",
         message: "What is the new role of this employee?",
-        choices: newEmployeeRole,
+        choices: employeeChoice,
         name: "roleNew"
     },
     {
@@ -164,19 +169,22 @@ const managerQuestions = [
     {
         type: "list",
         message: "Which employee would you like to update the manager of?",
-        choices: managerEmployee,
+        choices: employeeChoice,
         name: "managerUpdate"
     },
     {
         type: "list",
-        message: "Who is the new manager of the empployee?",
-        choices: managerNew,
+        message: "Who is the new manager of the employee?",
+        choices: employeeChoice,
         name: "managerNew"
     },
+];
+
+const managerEmployeeQuestion = [
     {
         type: "list",
         message: "Which manager of the employees do you want to see?",
-        choices: managerEmployee,
+        choices: employeeChoice,
         name: "managerEmployee"
     },
 ];
@@ -237,7 +245,7 @@ const departmentViewAll = () => {
     connection.query("SELECT id, name as department FROM department", (err, res) => {
         if (err) throw err;
         if (res.length === 0) {
-            console.log("\nThere are no departments added yet!\n");
+            console.log("\nNo valid departments\n");
             init();
         } else {
             console.log("\n");
@@ -251,7 +259,7 @@ const employeeViewAll = () => {
     connection.query("SELECT e.id, e.first_name, e.last_name, r.title as role, d.name AS department, r.salary, concat(e2.first_name, SPACE(1), e2.last_name) AS manager FROM employee e LEFT JOIN employee e2 ON (e.manager_id = e2.id OR e.manager_id = null) LEFT JOIN role r ON (e.role_id = r.id or e.role_id = null) LEFT JOIN department d ON (r.department_id = d.id OR r.department_id = null)", (err, res) => {
         if (err) throw err;
         if (res.length === 0) {
-            console.log("\nThere are no employees added yet!\n");
+            console.log("\nNo valid employees\n");
             init();
         } else {
             console.log("\n");
@@ -262,31 +270,86 @@ const employeeViewAll = () => {
 };
 
 const employeesByDepartmentViewAll = () => {
-    if (employeeDepartment.length === 0) {
-        console.log("\nThere are no departments added yet!\n");
+    if (departmentChoice.length === 0) {
+        console.log("\nNo valid departments\n");
         init();
     } else {
         inquirer.prompt(employeeDepartmentQuestion).then(res => {
-            let keepRes = res.employeeDepartment;
+            let keepRes = res.employeeByDepartment;
             connection.query(
-                "SELECT first_name, last_name FROM employee INNER JOIN role ON role_id = role.id INNER JOIN department ON department_id = department.id WHERE department.name = ?", [res.employeDepartment], (err, res) => {
+                "SELECT first_name, last_name FROM employee INNER JOIN role ON role_id = role.id INNER JOIN department ON department_id = department.id WHERE department.name = ?", [res.employeeByDepartment], (err, res) => {
                     if (err) throw err;
                     if (res.length === 0) {
-                        console.log("\nThere are no employees added yet!\n");
-                        conLogRN(5); // conLogRN(x) adds extra spacing to the output to make it look nice
+                        console.log("\nNo valid employees\n");
                     } else {
-                        res.unshift({"department": keepRes, "first_name": "X", "last_name": "X"});
+                        res.unshift({ "department": keepRes, "first_name": "X", "last_name": "X" });
                         console.log("\n");
                         console.table(res);
                         conLogRN(5);
                     }
                 });
-        }).then(() => { init();
-        }).catch((e) => { console.log(e)
-        });
+        }).then(() => {
+            init();
+        }).catch((e) => { console.log(e) });
     }
 };
 
+const budgetByDepartmentViewTotal = () => {
+    if (employeeChoice.length === 1) {
+        console.log("\nNo valid employees\n");
+        init();
+    } else {
+        inquirer.prompt(budegetDepartmentQuestion).then(res => {
+            let keepRes = res.budegetDepartment;
+            connection.query(
+                "SELECT sum(salary) as budget_total FROM role INNER JOIN employee ON role_id = role.id INNER JOIN department ON department_id = department.id WHERE department.name = ?", [res.budegetDepartment], (err, res) => {
+                    if (err) throw err;
+                    let budgetTotal = res[0].budget_total;
+                    let newRes = [{
+                        "department": keepRes,
+                        "budget_total": budgetTotal
+                    }];
+                    console.log("\n");
+                    console.table(newRes);
+                    conLogRN(5);
+                });
+        }).then(() => {
+            init();
+        }).catch((e) => { console.log(e) });
+    }
+};
+
+const employeesByManagerViewAll = () => {
+    if (managerEmployee.length === 1) {
+        console.log("\nNo valid employees\n");
+        init();
+    } else {
+        inquirer.prompt(managerEmployeeQuestion).then(res => {
+            let firstName = res.managerEmployee.split(" ")[0];
+            let lastName = res.managerEmployee.split(" ")[1];
+            connection.query("SELECT t1.first_name, t1.last_name FROM employee t1 INNER JOIN employee t2 ON (t1.manager_id = t2.id) WHERE (t2.first_name = ? AND t2.last_name = ?)",
+                [firstName, lastName],
+                (err, res) => {
+                    if (err) throw err;
+                    console.log("\n");
+                    if (res.length === 0) {
+                        console.log("No employees who work under this manager.\n");
+                        conLogRN(5);
+                    } else {
+                        res.unshift({
+                            "manager": "    -->",
+                            "first_name": firstName,
+                            "last_name": lastName
+                        })
+                        console.table(res);
+                        conLogRN(res.length);
+                    }
+                });
+        }).then(() => {
+            init();
+        }).catch((e) => { console.log(e) });
+    }
+};
 
 const rolesViewAll = () => {
     connection.query("SELECT id, title as role, salary, department_id FROM role", (err, res) => {
@@ -300,4 +363,42 @@ const rolesViewAll = () => {
             init();
         }
     });
+};
+
+const departmentAdd = () => {
+    inquirer.prompt(departmentQuestions).then(res => {
+        connection.query("INSERT INTO department SET ?", {
+            name: res.deptartmentName,
+        }, (err, res) => {
+            if (err) throw err;
+        });
+    }).then(() => {
+        checkLength("department");
+        init();
+    }).catch((e) => { console.log(e) });
+};
+
+const departmentDelete = () => {
+    checkLength("department");
+    if (departmentDelete.length === 0) {
+        console.log("\r\nThere are no departments added yet!\r\n");
+        init();
+    } else {
+        deptChoices.push("None");
+        inquirer.prompt(departmentDeleteQuestion).then(res => {
+            if (res.delDeptChoice === "None") {
+                console.log("\r\nNone selected.\r\n");
+            } else {
+                connection.query(
+                    "DELETE FROM department WHERE ?", {
+                        name: res.delDeptChoice,
+                    }, (err, res) => {
+                        if (err) throw err;
+                    });
+            }
+            deptChoices.pop();
+        }).then(() => {checkLength("department");
+            init();
+        }).catch((e) => {console.log(e)});
+    }
 };

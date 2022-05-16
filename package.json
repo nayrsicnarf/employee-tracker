@@ -2,7 +2,7 @@
   "name": "develop",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
   "dependencies": {
     "asciiart-logo": "^0.2.6",
     "console.table": "^0.10.0",
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -23,5 +23,6 @@
   "bugs": {
     "url": "https://github.com/nayrsicnarf/employee-tracker/issues"
   },
-  "homepage": "https://github.com/nayrsicnarf/employee-tracker#readme"
+  "homepage": "https://github.com/nayrsicnarf/employee-tracker#readme",
+  "devDependencies": {}
 }
