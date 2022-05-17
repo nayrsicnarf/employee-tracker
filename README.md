@@ -20,7 +20,7 @@ The goal of this assignment is to create an application to track employees using
 
 - [GitHub Repository](https://github.com/nayrsicnarf/employee-tracker.git)
 
-- [Video Demonstration]()
+- [Video Demonstration](https://drive.google.com/file/d/1pb9aUuI61gl7y35_gLQYJ_L_2HWeh9bX/view?usp=sharing)
 
 ## Technologies
 
@@ -46,9 +46,8 @@ To view the completed project, visit my [GitHub](https://github.com/nayrsicnarf/
 
 ## Screenshot
 
-![Note Taker Screenshot - Main](/Assets/Note-Taker-main.png)
-![Note Taker Screenshot - Create]()
-![Note Taker Screenshot - Delete]()
+![Employee Tracker Screenshot 1](/Assets/emptrac1.png)
+![Employee Tracker Screenshot 2](/Assets/emptrac2.png)
 
 ## Credits
 

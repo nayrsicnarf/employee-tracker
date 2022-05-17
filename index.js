@@ -55,7 +55,7 @@ const mainMenu = [
     {
         type: "list",
         message: "Please choose what you would like to do.",
-        choices: ["View All Departments", "View All Employees", "View All Employees By Department", "View Total Utilized Budget By Department", "View All Employees By Manager", "View All Roles", "Add Department", "Delete Department", "Add Role", "Delete Role", "Add Employee", "Delete Employee", "Update Employee Role", "Update Employee Manager", "Quit"],
+        choices: ["View All Departments", "View All Employees", "View All Roles", "View All Employees By Department", "View Total Utilized Budget By Department", "View All Employees By Manager", "Add Department", "Delete Department", "Add Role", "Delete Role", "Add Employee", "Delete Employee", "Update Employee Role", "Update Employee Manager", "Quit"],
         name: "mainMenuRes"
     },
 ];
