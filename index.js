@@ -213,6 +213,9 @@ const init = () => {
             case "View All Employees":
                 employeeViewAll();
                 break;
+            case "View All Roles":
+                rolesViewAll();
+                break;
             case "View All Employees By Department":
                 employeesByDepartmentViewAll();
                 break;
@@ -221,9 +224,6 @@ const init = () => {
                 break;
             case "View All Employees By Manager":
                 employeesByManagerViewAll();
-                break;
-            case "View All Roles":
-                rolesViewAll();
                 break;
             case "Add Department":
                 departmentAdd();
