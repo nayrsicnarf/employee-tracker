@@ -30,6 +30,9 @@ const managerId = [];
 connection.connect(err => {
     if (err) throw err;
     console.log("Connection is a success.");
+    // checkLength("department");
+    // checkLength("role");
+    // checkLength("employee");
     init();
 });
 
@@ -196,7 +199,7 @@ const managerEmployeeQuestion = [
     {
         type: "list",
         message: "Which manager of the employees do you want to see?",
-        choices: employeeChoice,
+        choices: ["Management", "Legal", "Engineering", "Finance"],
         name: "managerEmployee"
     },
 ];
@@ -254,7 +257,7 @@ const init = () => {
 };
 
 const departmentViewAll = () => {
-    connection.query("SELECT id, name as department FROM department", (err, res) => {
+    connection.query("SELECT id, department_name as department FROM department", (err, res) => {
         if (err) throw err;
         if (res.length === 0) {
             console.log("\nNo valid departments\n");
@@ -282,7 +285,7 @@ const rolesViewAll = () => {
 };
 
 const employeeViewAll = () => {
-    connection.query("SELECT e.id, e.first_name, e.last_name, r.title as role, d.name AS department, r.salary, concat(e2.first_name, SPACE(1), e2.last_name) AS manager FROM employee e LEFT JOIN employee e2 ON (e.manager_id = e2.id OR e.manager_id = null) LEFT JOIN role r ON (e.role_id = r.id or e.role_id = null) LEFT JOIN department d ON (r.department_id = d.id OR r.department_id = null)", (err, res) => {
+    connection.query("SELECT e.id, e.first_name, e.last_name, r.title as role, d.department_name AS department, r.salary, concat(e2.first_name, SPACE(1), e2.last_name) AS manager FROM employee e LEFT JOIN employee e2 ON (e.manager_id = e2.id OR e.manager_id = null) LEFT JOIN role r ON (e.role_id = r.id or e.role_id = null) LEFT JOIN department d ON (r.department_id = d.id OR r.department_id = null)", (err, res) => {
         if (err) throw err;
         if (res.length === 0) {
             console.log("\nNo valid employees\n");
@@ -302,22 +305,21 @@ const employeesByDepartmentViewAll = () => {
     } else {
         inquirer.prompt(employeeDepartmentQuestion).then(res => {
             let keepRes = res.employeeByDepartment;
-            connection.query(
-                "SELECT first_name, last_name FROM employee INNER JOIN role ON role_id = role.id INNER JOIN department ON department_id = department.id WHERE department.name = ?", [res.employeeByDepartment], (err, res) => {
-                    if (err) throw err;
-                    if (res.length === 0) {
-                        console.log("\nNo valid employees\n");
-                    } else {
-                        res.unshift({ "department": keepRes, "first_name": "X", "last_name": "X" });
-                        console.log("\n");
-                        console.table(res);
-                        //conLogRN(5);
-                    }
-                });
-        }).then(() => {
+            connection.query("SELECT first_name, last_name FROM employee INNER JOIN role ON role_id = role.id INNER JOIN department ON department_id = department_id WHERE department_name = ?", [res.employeeByDepartment], (err, res) => {
+                if (err) throw err;
+                if (res.length === 0) {
+                    console.log("\nNo valid employees\n");
+                } else {
+                    res.unshift({ "department": keepRes, "first_name": "X", "last_name": "X" });
+                    console.log("\n");
+                    console.table(res);
+                }
+            });
+        }
+        ).then(() => {
             init();
         }).catch((e) => { console.log(e) });
-    }
+    };
 };
 
 const budgetByDepartmentViewTotal = () => {
@@ -336,7 +338,6 @@ const budgetByDepartmentViewTotal = () => {
                 }];
                 console.log("\n");
                 console.table(newRes);
-                //conLogRN(5);
             });
         }).then(() => {
             init();
@@ -345,7 +346,7 @@ const budgetByDepartmentViewTotal = () => {
 };
 
 const employeesByManagerViewAll = () => {
-    if (managerEmployee.length === 1) {
+    if (employeeChoice.length === 1) {
         console.log("\nNo valid employees\n");
         init();
     } else {
@@ -359,7 +360,6 @@ const employeesByManagerViewAll = () => {
                     console.log("\n");
                     if (res.length === 0) {
                         console.log("No employees who work under this manager.\n");
-                        //conLogRN(5);
                     } else {
                         res.unshift({
                             "manager": "    -->",
@@ -367,13 +367,82 @@ const employeesByManagerViewAll = () => {
                             "last_name": lastName
                         })
                         console.table(res);
-                        //conLogRN(res.length);
                     }
                 });
         }).then(() => {
             init();
         }).catch((e) => { console.log(e) });
     }
+};
+
+const checkLength = table => {
+    let query = "";
+    switch (table) {
+        case "department":
+            query = "SELECT * FROM department";
+            break;
+        case "role":
+            query = "SELECT * FROM role";
+            break;
+        case "employee":
+            query = "SELECT * FROM employee";
+            break;
+        default:
+            connection.end();
+    }
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        if (res.length === 0) {
+            if (table === "employee") {
+                employeeChoice.length = 0;
+                employeeChoice.push("None");
+            }
+            return;
+        } else {
+            switch (table) {
+                case "department":
+                    departmentChoice.length = 0;
+                    departmentId.length = 0;
+                    for (let i = 0; i < res.length; i++) {
+                        let departmentName = res[i].name;
+                        let departmentId = res[i].id;
+                        let newObj = {
+                            [departmentName]: departmentId
+                        }
+                        departmentChoice.push(departmentName);
+                        departmentId.push(newObj);
+                    };
+                    break;
+                case "role":
+                    roleChoice.length = 0;
+                    roleId.length = 0;
+                    for (let i = 0; i < res.length; i++) {
+                        let roleName = res[i].title;
+                        let roleId = res[i].id;
+                        let newObject = {
+                            [roleName]: roleId
+                        }
+                        roleChoice.push(roleName);
+                        roleId.push(newObject);
+                    };
+                    break;
+                case "employee":
+                    employeeChoice.length = 0;
+                    managerId.length = 0;
+                    for (let i = 0; i < res.length; i++) {
+                        let fullName = res[i].first_name + " " + res[i].last_name;
+                        let managerId = res[i].id;
+                        let newObject = {
+                            [fullName]: managerId
+                        }
+                        employeeChoice.push(fullName);
+                        managerId.push(newObject);
+                    };
+                    employeeChoice.push("None");
+                    break;
+            }
+        }
+    });
 };
 
 const departmentAdd = () => {
@@ -384,13 +453,13 @@ const departmentAdd = () => {
             if (err) throw err;
         });
     }).then(() => {
-        //checkLength("department");
+        checkLength("department");
         init();
     }).catch((e) => { console.log(e) });
 };
 
 const departmentDelete = () => {
-    //checkLength("department");
+    checkLength("department");
     if (departmentDelete.length === 0) {
         console.log("\nNo valid departments\n");
         init();
@@ -400,8 +469,7 @@ const departmentDelete = () => {
             if (res.departmentDelete === "None") {
                 console.log("\nNone selected.\n");
             } else {
-                connection.query(
-                    "DELETE FROM department WHERE ?", {
+                connection.query("DELETE FROM department WHERE ?", {
                     name: res.departmentDelete,
                 }, (err, res) => {
                     if (err) throw err;
@@ -409,7 +477,7 @@ const departmentDelete = () => {
             }
             departmentChoice.pop();
         }).then(() => {
-            //checkLength("department");
+            checkLength("department");
             init();
         }).catch((e) => { console.log(e) });
     }
@@ -421,8 +489,7 @@ const roleAdd = () => {
         init();
     } else {
         inquirer.prompt(roleQuestions).then(res => {
-            connection.query(
-                "INSERT INTO role SET ?", {
+            connection.query("INSERT INTO role SET ?", {
                 title: res.roleName,
                 salary: res.roleSalary,
                 department_id: findId(departmentId, res.roleDeptartment)
@@ -431,14 +498,14 @@ const roleAdd = () => {
             }
             );
         }).then(() => {
-            //checkLength("role");
+            checkLength("role");
             init();
         }).catch((e) => { console.log(e) });
     }
 };
 
 const roleDelete = () => {
-    //checkLength("role");
+    checkLength("role");
     if (roleChoice.length === 0) {
         console.log("\nNo valid roles\n");
         init();
@@ -456,14 +523,14 @@ const roleDelete = () => {
             }
             roleChoice.pop();
         }).then(() => {
-            //checkLength("role");
+            checkLength("role");
             init();
         }).catch((e) => { console.log(e) });
     }
 };
 
 const employeeAdd = () => {
-    //checkLength("employee");
+    checkLength("employee");
     if (departmentChoice.length === 0) {
         console.log("\nA valid department is needed prior to adding new employee\n");
         init();
@@ -482,14 +549,14 @@ const employeeAdd = () => {
             }
             );
         }).then(() => {
-            //checkLength("employee");
+            checkLength("employee");
             init();
         }).catch((e) => { console.log(e) });
     }
 };
 
 const employeeDelete = () => {
-    //checkLength("employee");
+    checkLength("employee");
     if (employeeChoice.length === 1) {
         console.log("\nNo valid employees\n");
         init();
@@ -512,14 +579,14 @@ const employeeDelete = () => {
                 );
             }
         }).then(() => {
-            //checkLength("employee");
+            checkLength("employee");
             init();
         }).catch((e) => { console.log(e) });
     }
 };
 
 const employeeRoleUpdate = () => {
-    //checkLength("employee");
+    checkLength("employee");
     if (employeeChoice.length === 1) {
         console.log("\nNo valid employees\n");
         init();
@@ -547,14 +614,14 @@ const employeeRoleUpdate = () => {
                 );
             }
         }).then(() => {
-            //checkLength("employee");
+            checkLength("employee");
             init();
         }).catch((e) => { console.log(e) });
     }
 };
 
 const employeeManagerUpdate = () => {
-    //checkLength("employee");
+    checkLength("employee");
     if (employeeChoice.length === 1) {
         console.log("\nNo valid employees");
         init();
@@ -582,5 +649,21 @@ const employeeManagerUpdate = () => {
             checkLength("employee");
             init();
         }).catch((e) => { console.log(e) });
+    }
+};
+
+const findId = (arrayName, arrayParam) => {
+    if (arrayParam === "None") {
+        return null;
+    } else {
+        let returnId;
+        arrayName.forEach((value, index) => {
+            for (let key in value) {
+                if (arrayParam === key) {
+                    returnId = value[key];
+                }
+            }
+        });
+        return returnId;
     }
 };
