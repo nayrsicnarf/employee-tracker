@@ -13,10 +13,10 @@ INSERT INTO department (department_name)
 VALUES (4, 'Finance');
 
 
-INSERT INTO employeeemployeeRole (title, salary, department_id)
+INSERT INTO employeeeRole (title, salary, department_id)
 VALUES (1, 'Senior Manager', 200000, 1);
 
-INSERT INTO employeeemployeeRole (title, salary, department_id)
+INSERT INTO employeeRole (title, salary, department_id)
 VALUES (2, 'Lawer', 175000, 2);
 
 INSERT INTO employeeRole (title, salary, department_id)

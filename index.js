@@ -1,6 +1,6 @@
 const mysql2 = require("mysql2");
 const inquirer = require("inquirer");
-const consoleTable = require("console.table");
+require("console.table");
 
 // const logo = require("asciiart-logo");
 // const config = require("./package.json");
@@ -64,7 +64,7 @@ const departmentQuestions = [
     {
         type: "input",
         message: "What is the name of the department?",
-        name: "deptartmentName",
+        department_name: "deptartmentName",
         validate: validateString
     },
 ];
@@ -74,7 +74,7 @@ const departmentDeleteQuestion = [
         type: "list",
         message: "Which department do you want to delete?",
         choices: departmentChoice,
-        name: "departmentDelete"
+        department_name: "departmentDelete"
     },
 ];
 
