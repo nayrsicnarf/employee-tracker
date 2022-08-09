@@ -271,7 +271,7 @@ const departmentViewAll = () => {
 };
 
 const rolesViewAll = () => {
-    connection.query("SELECT id, title as role, salary, department_id FROM role", (err, res) => {
+    connection.query("SELECT id, title as role, department_id FROM role", (err, res) => {
         if (err) throw err;
         if (res.length === 0) {
             console.log("\nNo valid roles\n");
@@ -303,22 +303,28 @@ const employeesByDepartmentViewAll = () => {
         console.log("\nNo valid departments\n");
         init();
     } else {
-        inquirer.prompt(employeeDepartmentQuestion).then(res => {
-            let keepRes = res.employeeByDepartment;
-            connection.query("SELECT first_name, last_name FROM employee INNER JOIN role ON role_id = role.id INNER JOIN department ON department_id = department_id WHERE department_name = ?", [res.employeeByDepartment], (err, res) => {
-                if (err) throw err;
-                if (res.length === 0) {
-                    console.log("\nNo valid employees\n");
-                } else {
-                    res.unshift({ "department": keepRes, "first_name": "X", "last_name": "X" });
-                    console.log("\n");
-                    console.table(res);
-                }
-            });
-        }
-        ).then(() => {
-            init();
-        }).catch((e) => { console.log(e) });
+        inquirer
+            .prompt(employeeDepartmentQuestion).then(res => {
+                let keepRes = res.employeeByDepartment;
+                connection
+                    .query("SELECT first_name, last_name FROM employee INNER JOIN role ON role_id = role.id INNER JOIN department ON department_id = department.id WHERE department.name = ?", [res.employeeByDepartment], (err, res) => {
+                        if (err) throw err;
+                        if (res.length === 0) {
+                            console.log("\nNo valid employees\n");
+                        } else {
+                            res.unshift({
+                                "department": keepRes,
+                                "first_name": "X",
+                                "last_name": "X"
+                            });
+                            console.log("\n");
+                            console.table(res);
+                        }
+                    });
+            }
+            ).then(() => {
+                init();
+            }).catch((e) => { console.log(e) });
     };
 };
 
