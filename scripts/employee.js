@@ -2,9 +2,9 @@ require("console.table");
 require("dotenv").config();
 const inquirer = require('inquirer');
 
-function allEmployees(db, cb) {
+function viewAllEmployees(db, cb) {
     db
-        .query(`SELECT employee.id AS ID, employee.first_name AS "First Name",  employee.last_name AS "Last Name", empRole.title AS "Role", department.depName AS "Department", empRole.salary AS "Salary", CONCAT (manager.first_name, " ", manager.last_name) AS "Manager" FROM employee LEFT JOIN empRole ON employee.role_id = empRole.id LEFT JOIN department ON empRole.department_id = department.id LEFT JOIN employee AS manager ON employee.manager_id = manager.id`, function (err, results) {
+        .query(`SELECT employee.id AS ID, employee.first_name AS "First Name",  employee.last_name AS "Last Name", empRole.title AS "Role", department.department_name AS "Department", empRole.salary AS "Salary", CONCAT (manager.first_name, " ", manager.last_name) AS "Manager" FROM employee LEFT JOIN empRole ON employee.role_id = empRole.id LEFT JOIN department ON empRole.department_id = department.id LEFT JOIN employee AS manager ON employee.manager_id = manager.id`, function (err, results) {
             if (err) {
                 console.log(err)
             }
@@ -13,7 +13,7 @@ function allEmployees(db, cb) {
         })
 };
 
-function newEmp(db, cb) {
+function addNewEmployee(db, cb) {
     const listRole = [];
     db.query("SELECT title FROM empRole", (err, results) => {
         if (err) {
@@ -109,4 +109,4 @@ function newEmp(db, cb) {
         })
 }
 
-module.exports = { allEmployees, newEmp };
+module.exports = { viewAllEmployees, addNewEmployee };

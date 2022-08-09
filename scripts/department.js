@@ -2,8 +2,8 @@ const inquirer = require('inquirer');
 require("console.table");
 require("dotenv").config()
 
-function viewDep(db, cb) {
-    db.query("SELECT id, depName AS department FROM department", function (err, results) {
+function viewAllDepartments(db, cb) {
+    db.query("SELECT id, department_name AS department FROM department", function (err, results) {
         if (err) {
             console.log(err)
         }
@@ -12,7 +12,7 @@ function viewDep(db, cb) {
     })
 };
 
-function newDep(db, cb) {
+function addNewDepartment(db, cb) {
     inquirer
         .prompt(
             {
@@ -23,7 +23,7 @@ function newDep(db, cb) {
         .then(
             (data) => {
                 const depname = data.names
-                const sql = "INSERT INTO department (depName) VALUES (?)";
+                const sql = "INSERT INTO department (department_name) VALUES (?)";
                 db.query(sql, depname, function (err, results) {
                     if (err) {
                         console.log(err)
@@ -34,4 +34,4 @@ function newDep(db, cb) {
         )
 };
 
-module.exports = { viewDep, newDep };
+module.exports = { viewAllDepartments, addNewDepartment };
