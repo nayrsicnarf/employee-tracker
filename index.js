@@ -1,23 +1,12 @@
 const inquirer = require('inquirer');
 const mysql2 = require("mysql2");
-require("console.table");
+const consoleTable = require("console.table");
 // created separate js files in scripts folder to resolve issues cause by containing everything in one index.js file
-const { viewAllDepartments, addNewDepartment } = require("./scripts/deparments")
+const { viewAllDepartments, addNewDepartment } = require("./scripts/departments")
 const { viewAllEmployees, addNewEmployee } = require("./scripts/employees")
 const { viewAllRoles, addNewRole, updateRole } = require("./scripts/roles")
-require("dotenv").config()
-
-const db = mysql2.createConnection(
-    {
-        host: "localhost",
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        port: 3306
-        },
-    menu()
-);
-
+// require("dotenv").config()
+console.log("sanity check");
 const mainMenu = [{
     type: "list",
     message: "What would you like to do? ",
@@ -33,6 +22,15 @@ const mainMenu = [{
         "Done"
     ]
 }];
+
+const db = mysql2.createConnection(
+    {
+        host: "localhost",
+        port: 3306,
+        user: "root",
+        password: "",
+        database: "employee_tracker_db"
+    });
 
 function menu() {
     inquirer
@@ -64,3 +62,5 @@ function menu() {
             }
         })
 };
+
+menu();

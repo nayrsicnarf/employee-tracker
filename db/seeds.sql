@@ -13,7 +13,7 @@ INSERT INTO department (department_name)
 VALUES ("Finance");
 
 
-INSERT INTO employeeeRole (title, salary, department_id)
+INSERT INTO employeeRole (title, salary, department_id)
 VALUES ("Senior Manager", 200000, 1);
 
 INSERT INTO employeeRole (title, salary, department_id)

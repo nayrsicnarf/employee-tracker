@@ -1,5 +1,5 @@
 require("console.table");
-require("dotenv").config();
+// require("dotenv").config();
 const inquirer = require('inquirer');
 
 function viewAllRoles(db, cb) {

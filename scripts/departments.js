@@ -1,6 +1,6 @@
 const inquirer = require('inquirer');
 require("console.table");
-require("dotenv").config()
+// require("dotenv").config()
 
 function viewAllDepartments(db, cb) {
     db.query("SELECT id, department_name AS department FROM department", function (err, results) {
@@ -17,7 +17,7 @@ function addNewDepartment(db, cb) {
         .prompt(
             {
                 type: "input",
-                message: "What is the name of the department you wat to add?",
+                message: "What is the name of the department you want to add?",
                 name: "names"
             })
         .then(
